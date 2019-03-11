@@ -1,0 +1,234 @@
+
+a.out:     file format elf32-littleriscv
+
+
+Disassembly of section .all:
+
+00000000 <_boot>:
+   0:	00000297          	auipc	x5,0x0
+   4:	26c28293          	addi	x5,x5,620 # 26c <__trap_handler>
+   8:	30529073          	csrrw	x0,mtvec,x5
+   c:	00020117          	auipc	x2,0x20
+  10:	ef410113          	addi	x2,x2,-268 # 1ff00 <_stack_top>
+  14:	00c000ef          	jal	x1,20 <main>
+
+00000018 <_boot_end>:
+  18:	10500073          	wfi
+  1c:	ffdff06f          	jal	x0,18 <_boot_end>
+
+00000020 <main>:
+  20:	00800293          	addi	x5,x0,8
+  24:	3002a073          	csrrs	x0,mstatus,x5
+  28:	000012b7          	lui	x5,0x1
+  2c:	80028293          	addi	x5,x5,-2048 # 800 <_end+0x4e8>
+  30:	3042a073          	csrrs	x0,mie,x5
+  34:	00000613          	addi	x12,x0,0
+  38:	a0000537          	lui	x10,0xa0000
+  3c:	00100693          	addi	x13,x0,1
+  40:	b00005b7          	lui	x11,0xb0000
+  44:	0140006f          	jal	x0,58 <main+0x38>
+  48:	30002a23          	sw	x0,788(x0) # 314 <irq_received>
+  4c:	00068613          	addi	x12,x13,0
+  50:	31402783          	lw	x15,788(x0) # 314 <irq_received>
+  54:	fe078ee3          	beq	x15,x0,50 <main+0x30>
+  58:	fe0618e3          	bne	x12,x0,48 <main+0x28>
+  5c:	00d52423          	sw	x13,8(x10) # a0000008 <_stack_top+0x9ffe0108>
+  60:	00d5a423          	sw	x13,8(x11) # b0000008 <_stack_top+0xaffe0108>
+  64:	fe5ff06f          	jal	x0,48 <main+0x28>
+
+00000068 <interrupt_handler>:
+  68:	00100713          	addi	x14,x0,1
+  6c:	30e02a23          	sw	x14,788(x0) # 314 <irq_received>
+  70:	a00007b7          	lui	x15,0xa0000
+  74:	0047a783          	lw	x15,4(x15) # a0000004 <_stack_top+0x9ffe0104>
+  78:	00078663          	beq	x15,x0,84 <interrupt_handler+0x1c>
+  7c:	a0000737          	lui	x14,0xa0000
+  80:	00f72223          	sw	x15,4(x14) # a0000004 <_stack_top+0x9ffe0104>
+  84:	00008067          	jalr	x0,0(x1)
+
+00000088 <adc_isr_floating_point>:
+  88:	00008067          	jalr	x0,0(x1)
+
+0000008c <avoid_overflow>:
+  8c:	00b04e63          	blt	x0,x11,a8 <avoid_overflow+0x1c>
+  90:	00058a63          	beq	x11,x0,a4 <avoid_overflow+0x18>
+  94:	fff00793          	addi	x15,x0,-1
+  98:	02f5c463          	blt	x11,x15,c0 <avoid_overflow+0x34>
+  9c:	00f58c63          	beq	x11,x15,b4 <avoid_overflow+0x28>
+  a0:	00008067          	jalr	x0,0(x1)
+  a4:	fe0558e3          	bge	x10,x0,94 <avoid_overflow+0x8>
+  a8:	80000537          	lui	x10,0x80000
+  ac:	fff54513          	xori	x10,x10,-1
+  b0:	00008067          	jalr	x0,0(x1)
+  b4:	800007b7          	lui	x15,0x80000
+  b8:	00f56463          	bltu	x10,x15,c0 <avoid_overflow+0x34>
+  bc:	00008067          	jalr	x0,0(x1)
+  c0:	80000537          	lui	x10,0x80000
+  c4:	fddff06f          	jal	x0,a0 <avoid_overflow+0x14>
+
+000000c8 <fpMlt>:
+  c8:	41f55793          	srai	x15,x10,0x1f
+  cc:	41f5d713          	srai	x14,x11,0x1f
+  d0:	02b787b3          	mul	x15,x15,x11
+  d4:	02a70733          	mul	x14,x14,x10
+  d8:	00e787b3          	add	x15,x15,x14
+  dc:	02b50733          	mul	x14,x10,x11
+  e0:	02b535b3          	mulhu	x11,x10,x11
+  e4:	00b785b3          	add	x11,x15,x11
+  e8:	20070513          	addi	x10,x14,512
+  ec:	00e537b3          	sltu	x15,x10,x14
+  f0:	00b787b3          	add	x15,x15,x11
+  f4:	01679713          	slli	x14,x15,0x16
+  f8:	00a55513          	srli	x10,x10,0xa
+  fc:	00a76533          	or	x10,x14,x10
+ 100:	40a7d793          	srai	x15,x15,0xa
+ 104:	00f04e63          	blt	x0,x15,120 <fpMlt+0x58>
+ 108:	00078a63          	beq	x15,x0,11c <fpMlt+0x54>
+ 10c:	fff00713          	addi	x14,x0,-1
+ 110:	02e7c463          	blt	x15,x14,138 <fpMlt+0x70>
+ 114:	00e78c63          	beq	x15,x14,12c <fpMlt+0x64>
+ 118:	00008067          	jalr	x0,0(x1)
+ 11c:	fe0558e3          	bge	x10,x0,10c <fpMlt+0x44>
+ 120:	80000537          	lui	x10,0x80000
+ 124:	fff54513          	xori	x10,x10,-1
+ 128:	00008067          	jalr	x0,0(x1)
+ 12c:	800007b7          	lui	x15,0x80000
+ 130:	00f56463          	bltu	x10,x15,138 <fpMlt+0x70>
+ 134:	00008067          	jalr	x0,0(x1)
+ 138:	80000537          	lui	x10,0x80000
+ 13c:	fddff06f          	jal	x0,118 <fpMlt+0x50>
+
+00000140 <fpDiv>:
+ 140:	00a51513          	slli	x10,x10,0xa
+ 144:	02b54533          	div	x10,x10,x11
+ 148:	00008067          	jalr	x0,0(x1)
+
+0000014c <adc_isr_fixed_point>:
+ 14c:	fe010113          	addi	x2,x2,-32
+ 150:	00112e23          	sw	x1,28(x2)
+ 154:	00812c23          	sw	x8,24(x2)
+ 158:	00912a23          	sw	x9,20(x2)
+ 15c:	01212823          	sw	x18,16(x2)
+ 160:	01312623          	sw	x19,12(x2)
+ 164:	01412423          	sw	x20,8(x2)
+ 168:	01512223          	sw	x21,4(x2)
+ 16c:	a00007b7          	lui	x15,0xa0000
+ 170:	0007a983          	lw	x19,0(x15) # a0000000 <_stack_top+0x9ffe0100>
+ 174:	fffff4b7          	lui	x9,0xfffff
+ 178:	c0048793          	addi	x15,x9,-1024 # ffffec00 <_stack_top+0xfffded00>
+ 17c:	00f987b3          	add	x15,x19,x15
+ 180:	40000993          	addi	x19,x0,1024
+ 184:	40f989b3          	sub	x19,x19,x15
+ 188:	00a00593          	addi	x11,x0,10
+ 18c:	00004537          	lui	x10,0x4
+ 190:	c0050513          	addi	x10,x10,-1024 # 3c00 <_end+0x38e8>
+ 194:	f35ff0ef          	jal	x1,c8 <fpMlt>
+ 198:	00001937          	lui	x18,0x1
+ 19c:	80090593          	addi	x11,x18,-2048 # 800 <_end+0x4e8>
+ 1a0:	fa1ff0ef          	jal	x1,140 <fpDiv>
+ 1a4:	00050a13          	addi	x20,x10,0
+ 1a8:	00a00593          	addi	x11,x0,10
+ 1ac:	13300513          	addi	x10,x0,307
+ 1b0:	f91ff0ef          	jal	x1,140 <fpDiv>
+ 1b4:	00050a93          	addi	x21,x10,0
+ 1b8:	80090593          	addi	x11,x18,-2048
+ 1bc:	f0dff0ef          	jal	x1,c8 <fpMlt>
+ 1c0:	40048493          	addi	x9,x9,1024
+ 1c4:	009a04b3          	add	x9,x20,x9
+ 1c8:	40a484b3          	sub	x9,x9,x10
+ 1cc:	c0090913          	addi	x18,x18,-1024
+ 1d0:	012a0933          	add	x18,x20,x18
+ 1d4:	00098593          	addi	x11,x19,0
+ 1d8:	01590533          	add	x10,x18,x21
+ 1dc:	eedff0ef          	jal	x1,c8 <fpMlt>
+ 1e0:	31002403          	lw	x8,784(x0) # 310 <last_control.1605>
+ 1e4:	00850433          	add	x8,x10,x8
+ 1e8:	30c02583          	lw	x11,780(x0) # 30c <last_error_0.1603>
+ 1ec:	00048513          	addi	x10,x9,0
+ 1f0:	ed9ff0ef          	jal	x1,c8 <fpMlt>
+ 1f4:	00a40433          	add	x8,x8,x10
+ 1f8:	30802583          	lw	x11,776(x0) # 308 <_edata>
+ 1fc:	000a8513          	addi	x10,x21,0
+ 200:	ec9ff0ef          	jal	x1,c8 <fpMlt>
+ 204:	00a40533          	add	x10,x8,x10
+ 208:	b00007b7          	lui	x15,0xb0000
+ 20c:	00a7a023          	sw	x10,0(x15) # b0000000 <_stack_top+0xaffe0100>
+ 210:	30c02783          	lw	x15,780(x0) # 30c <last_error_0.1603>
+ 214:	30f02423          	sw	x15,776(x0) # 308 <_edata>
+ 218:	31302623          	sw	x19,780(x0) # 30c <last_error_0.1603>
+ 21c:	30a02823          	sw	x10,784(x0) # 310 <last_control.1605>
+ 220:	01c12083          	lw	x1,28(x2)
+ 224:	01812403          	lw	x8,24(x2)
+ 228:	01412483          	lw	x9,20(x2)
+ 22c:	01012903          	lw	x18,16(x2)
+ 230:	00c12983          	lw	x19,12(x2)
+ 234:	00812a03          	lw	x20,8(x2)
+ 238:	00412a83          	lw	x21,4(x2)
+ 23c:	02010113          	addi	x2,x2,32
+ 240:	00008067          	jalr	x0,0(x1)
+
+00000244 <c_trap_handler>:
+ 244:	00b57513          	andi	x10,x10,11
+ 248:	00b00793          	addi	x15,x0,11
+ 24c:	00f50463          	beq	x10,x15,254 <c_trap_handler+0x10>
+ 250:	00008067          	jalr	x0,0(x1)
+ 254:	ff010113          	addi	x2,x2,-16
+ 258:	00112623          	sw	x1,12(x2)
+ 25c:	e0dff0ef          	jal	x1,68 <interrupt_handler>
+ 260:	00c12083          	lw	x1,12(x2)
+ 264:	01010113          	addi	x2,x2,16
+ 268:	00008067          	jalr	x0,0(x1)
+
+0000026c <__trap_handler>:
+ 26c:	fc010113          	addi	x2,x2,-64
+ 270:	00112023          	sw	x1,0(x2)
+ 274:	00a12223          	sw	x10,4(x2)
+ 278:	00b12423          	sw	x11,8(x2)
+ 27c:	00c12623          	sw	x12,12(x2)
+ 280:	00d12a23          	sw	x13,20(x2)
+ 284:	00e12a23          	sw	x14,20(x2)
+ 288:	00f12c23          	sw	x15,24(x2)
+ 28c:	01012e23          	sw	x16,28(x2)
+ 290:	03112023          	sw	x17,32(x2)
+ 294:	02512223          	sw	x5,36(x2)
+ 298:	02612423          	sw	x6,40(x2)
+ 29c:	02712623          	sw	x7,44(x2)
+ 2a0:	03c12823          	sw	x28,48(x2)
+ 2a4:	03d12a23          	sw	x29,52(x2)
+ 2a8:	03e12c23          	sw	x30,56(x2)
+ 2ac:	03f12e23          	sw	x31,60(x2)
+ 2b0:	34202573          	csrrs	x10,mcause,x0
+ 2b4:	344025f3          	csrrs	x11,mip,x0
+ 2b8:	30402673          	csrrs	x12,mie,x0
+ 2bc:	f89ff0ef          	jal	x1,244 <c_trap_handler>
+ 2c0:	00012083          	lw	x1,0(x2)
+ 2c4:	00412503          	lw	x10,4(x2)
+ 2c8:	00812583          	lw	x11,8(x2)
+ 2cc:	00c12603          	lw	x12,12(x2)
+ 2d0:	01412683          	lw	x13,20(x2)
+ 2d4:	01412703          	lw	x14,20(x2)
+ 2d8:	01812783          	lw	x15,24(x2)
+ 2dc:	01c12803          	lw	x16,28(x2)
+ 2e0:	02012883          	lw	x17,32(x2)
+ 2e4:	02412283          	lw	x5,36(x2)
+ 2e8:	02812303          	lw	x6,40(x2)
+ 2ec:	02c12383          	lw	x7,44(x2)
+ 2f0:	03012e03          	lw	x28,48(x2)
+ 2f4:	03412e83          	lw	x29,52(x2)
+ 2f8:	03812f03          	lw	x30,56(x2)
+ 2fc:	03c12f83          	lw	x31,60(x2)
+ 300:	04010113          	addi	x2,x2,64
+ 304:	30200073          	mret
+
+00000308 <_edata>:
+ 308:	0000                	unimp
+	...
+
+0000030c <last_error_0.1603>:
+ 30c:	0000 0000                                   ....
+
+00000310 <last_control.1605>:
+ 310:	0000 0000                                   ....
+
+00000314 <irq_received>:
+ 314:	0000 0000                                   ....
